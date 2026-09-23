@@ -29,14 +29,16 @@ chmod +x drv_prep.sh
 ## Usage
 
 ```text
-./drv_prep.sh [-r] [-h] <source> [destination]
+./drv_prep.sh [-r] [-d] [-h] <source> [destination]
 ```
 
 - `<source>`: an `.mp4` file or a directory containing videos.
 - `[destination]`: optional destination directory. If omitted, conversion takes
   place next to the source file.
-- `-r`: also process subdirectories.
-- `-h`: display the help message.
+- `-r`, `--recursive`: also process subdirectories.
+- `-d`, `--delete-original`: delete the original `.mp4` file after successful
+  conversion. By default, the original file is kept.
+- `-h`, `--help`: display the help message.
 
 ### Examples
 
@@ -49,18 +51,19 @@ Convert the `.mp4` files in a directory:
 Convert recursively:
 
 ```bash
-./drv_prep.sh -r /run/media/sdcard/DCIM
+./drv_prep.sh --recursive /run/media/sdcard/DCIM
 ```
 
 Convert to another directory:
 
 ```bash
-./drv_prep.sh -r /run/media/sdcard/DCIM ~/Videos/MyProject
+./drv_prep.sh --recursive /run/media/sdcard/DCIM ~/Videos/MyProject
 ```
 
 The video is copied with `-c:v copy` and the audio is converted to `pcm_s24le`.
-The original `.mp4` file is deleted only if conversion succeeds; if an error
-occurs, it is kept.
+The original `.mp4` file is kept by default. Use `-d` or `--delete-original` to
+delete it after a successful conversion. If an error occurs, the source file is
+always kept.
 
 ## License
 

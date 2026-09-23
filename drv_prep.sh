@@ -4,19 +4,21 @@
 # into MOV with 24-bit PCM audio without re-encoding video.
 
 RECURSIVE=false
+DELETE_ORIGINAL=false
 
 show_help() {
     cat << EOF
-Usage: $(basename "$0") [-r] [-h] <source> [destination]
+Usage: $(basename "$0") [-r] [-d] [-h] <source> [destination]
 
 Prepares MP4 files (H.264/H.265) for DaVinci Resolve on Linux by converting
 unsupported AAC audio into 24-bit PCM audio inside a MOV container.
 Video streams are copied bit-for-bit without quality loss.
-Original MP4 files are deleted only if conversion succeeds.
+Original MP4 files are kept by default.
 
 Options:
-  -r    Enable recursive processing of subdirectories.
-  -h    Display this help message and exit.
+  -r, --recursive         Enable recursive processing of subdirectories.
+  -d, --delete-original   Delete original MP4 files after successful conversion.
+  -h, --help              Display this help message and exit.
 
 Arguments:
   <source>       MP4 file or directory containing videos.
@@ -25,20 +27,41 @@ Arguments:
 
 Examples:
   $(basename "$0") /my/nas/footage
-  $(basename "$0") -r /my/nas/footage
-  $(basename "$0") -r /run/media/sdcard/DCIM ~/Videos/MyProject
+  $(basename "$0") --recursive /my/nas/footage
+  $(basename "$0") --recursive /run/media/sdcard/DCIM ~/Videos/MyProject
 EOF
 }
 
-# Parse options (-r, -h)
-while getopts "rh" opt; do
-    case $opt in
-        r) RECURSIVE=true ;;
-        h) show_help; exit 0 ;;
-        *) show_help; exit 1 ;;
+# Parse options
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -r|--recursive)
+            RECURSIVE=true
+            shift
+            ;;
+        -d|--delete-original)
+            DELETE_ORIGINAL=true
+            shift
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            echo "Error: Unknown option '$1'."
+            echo ""
+            show_help
+            exit 1
+            ;;
+        *)
+            break
+            ;;
     esac
 done
-shift $((OPTIND - 1))
 
 SRC="$1"
 DEST="$2"
@@ -65,8 +88,12 @@ convert_file() {
 
     echo "Processing: $input"
     if ffmpeg -hide_banner -loglevel error -stats -i "$input" -c:v copy -c:a pcm_s24le "$output"; then
-        rm "$input"
-        echo " -> Converted: $output (source deleted)"
+        if [ "$DELETE_ORIGINAL" = true ]; then
+            rm "$input"
+            echo " -> Converted: $output (source deleted)"
+        else
+            echo " -> Converted: $output (source retained)"
+        fi
     else
         echo " -> ERROR converting $input (source retained)"
     fi
