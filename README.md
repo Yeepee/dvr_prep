@@ -67,4 +67,4 @@ always kept.
 
 ## License
 
-No license has been defined for this project yet.
+This project is licensed under the [MIT License](LICENSE).
