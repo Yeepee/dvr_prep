@@ -26,6 +26,21 @@ cd dvr_prep
 chmod +x drv_prep.sh
 ```
 
+Optionally, create a symbolic link in `~/.local/bin` for easier execution:
+
+```bash
+mkdir -p ~/.local/bin && ln -s "$(pwd)/drv_prep.sh" ~/.local/bin/dvr_prep
+```
+
+Alternatively, install the latest version directly into `~/.local/bin`:
+
+```bash
+mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/Yeepee/dvr_prep/main/drv_prep.sh -o ~/.local/bin/dvr_prep && chmod +x ~/.local/bin/dvr_prep
+```
+
+Make sure `~/.local/bin` is included in your `PATH` to run `dvr_prep` from
+any directory.
+
 ## Usage
 
 ```text
