@@ -2,6 +2,7 @@
 
 # Copyright (c) 2026 Yeepee
 # SPDX-License-Identifier: MIT
+# Source: https://github.com/Yeepee/dvr_prep
 
 # Fixes AAC audio for DaVinci Resolve on Linux by remuxing MP4 (H.264/H.265) 
 # into MOV with 24-bit PCM audio without re-encoding video.
