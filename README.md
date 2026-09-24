@@ -44,7 +44,7 @@ any directory.
 ## Usage
 
 ```text
-./drv_prep.sh [-r] [-d] [-h] <source> [destination]
+./drv_prep.sh [-r] [-d] [-v] [-h] <source> [destination]
 ```
 
 - `<source>`: an `.mp4` file or a directory containing videos.
@@ -53,6 +53,8 @@ any directory.
 - `-r`, `--recursive`: also process subdirectories.
 - `-d`, `--delete-original`: delete the original `.mp4` file after successful
   conversion. By default, the original file is kept.
+- `-v`, `--verbose`: display the complete FFmpeg output. By default, only
+  essential messages are displayed.
 - `-h`, `--help`: display the help message.
 
 ### Examples
@@ -73,6 +75,12 @@ Convert to another directory:
 
 ```bash
 ./drv_prep.sh --recursive /run/media/sdcard/DCIM ~/Videos/MyProject
+```
+
+Display the complete FFmpeg output:
+
+```bash
+./drv_prep.sh --verbose /path/to/footage
 ```
 
 The video is copied with `-c:v copy` and the audio is converted to `pcm_s24le`.

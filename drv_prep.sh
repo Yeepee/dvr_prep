@@ -9,8 +9,10 @@
 
 RECURSIVE=false
 DELETE_ORIGINAL=false
+VERBOSE=false
 FFMPEG_PID=""
 CURRENT_OUTPUT=""
+CURRENT_LOG=""
 
 stop_processing() {
     echo ""
@@ -30,6 +32,9 @@ stop_processing() {
         rm -f "$CURRENT_OUTPUT"
         echo " -> Removed incomplete output: $CURRENT_OUTPUT"
     fi
+    if [ -n "$CURRENT_LOG" ]; then
+        rm -f "$CURRENT_LOG"
+    fi
     exit 130
 }
 
@@ -37,7 +42,7 @@ trap stop_processing INT TERM
 
 show_help() {
     cat << EOF
-Usage: $(basename "$0") [-r] [-d] [-h] <source> [destination]
+Usage: $(basename "$0") [-r] [-d] [-v] [-h] <source> [destination]
 
 Prepares MP4 files (H.264/H.265) for DaVinci Resolve on Linux by converting
 unsupported AAC audio into 24-bit PCM audio inside a MOV container.
@@ -47,6 +52,7 @@ Original MP4 files are kept by default.
 Options:
   -r, --recursive         Enable recursive processing of subdirectories.
   -d, --delete-original   Delete original MP4 files after successful conversion.
+  -v, --verbose           Display the complete FFmpeg output.
   -h, --help              Display this help message and exit.
 
 Arguments:
@@ -70,6 +76,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -d|--delete-original)
             DELETE_ORIGINAL=true
+            shift
+            ;;
+        -v|--verbose)
+            VERBOSE=true
             shift
             ;;
         -h|--help)
@@ -112,15 +122,23 @@ convert_file() {
     local input="$1"
     local output="$2"
     local temporary_output="${output}.part.mov"
+    local temporary_log="${temporary_output}.log"
 
     # Create target directory if needed
     mkdir -p "$(dirname "$output")"
     rm -f "$temporary_output"
+    rm -f "$temporary_log"
 
     echo "Processing: $input"
     CURRENT_OUTPUT="$temporary_output"
-    ffmpeg -hide_banner -loglevel error -stats -i "$input" \
-        -c:v copy -c:a pcm_s24le "$temporary_output" &
+    if [ "$VERBOSE" = true ]; then
+        ffmpeg -hide_banner -loglevel info -stats -i "$input" \
+            -c:v copy -c:a pcm_s24le "$temporary_output" &
+    else
+        CURRENT_LOG="$temporary_log"
+        ffmpeg -hide_banner -loglevel error -nostats -i "$input" \
+            -c:v copy -c:a pcm_s24le "$temporary_output" 2>"$temporary_log" &
+    fi
     FFMPEG_PID=$!
     wait "$FFMPEG_PID"
     ffmpeg_status=$?
@@ -129,6 +147,8 @@ convert_file() {
     if [ "$ffmpeg_status" -eq 0 ]; then
         mv -f "$temporary_output" "$output"
         CURRENT_OUTPUT=""
+        CURRENT_LOG=""
+        rm -f "$temporary_log"
         if [ "$DELETE_ORIGINAL" = true ]; then
             rm "$input"
             echo " -> Converted: $output (source deleted)"
@@ -136,7 +156,12 @@ convert_file() {
             echo " -> Converted: $output (source retained)"
         fi
     else
+        if [ "$VERBOSE" = false ] && [ -f "$temporary_log" ]; then
+            cat "$temporary_log"
+        fi
+        rm -f "$temporary_log"
         CURRENT_OUTPUT=""
+        CURRENT_LOG=""
         echo " -> ERROR converting $input (source retained)"
     fi
 }
