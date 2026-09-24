@@ -54,7 +54,10 @@ any directory.
 - `-d`, `--delete-original`: delete the original `.mp4` file after successful
   conversion. By default, the original file is kept.
 - `-v`, `--verbose`: display the complete FFmpeg output. By default, only
-  essential messages are displayed.
+  essential messages, a progress bar, and an estimated time remaining are
+  displayed. The progress bar is limited to 80 characters and ends with the
+  percentage; the ETA is displayed below it. In verbose mode, no progress bar
+  or ETA is added.
 - `-h`, `--help`: display the help message.
 
 ### Examples
