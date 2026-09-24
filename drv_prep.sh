@@ -237,6 +237,8 @@ convert_file() {
         rm -f "$temporary_log"
         CURRENT_OUTPUT=""
         CURRENT_LOG=""
+        CURRENT_PROGRESS=""
+        rm -f "$temporary_progress"
         echo " -> ERROR converting $input (source retained)"
     fi
 }
@@ -245,13 +247,22 @@ convert_file() {
 if [ -d "$SRC" ]; then
     echo "=== Processing directory: $SRC (Recursive: $RECURSIVE) ==="
     SRC_CLEAN="${SRC%/}"
+    FILES=()
 
     FIND_OPTS=()
     if [ "$RECURSIVE" = false ]; then
         FIND_OPTS+=("-maxdepth" "1")
     fi
 
-    while read -r f; do
+    while IFS= read -r -d '' f; do
+        FILES+=("$f")
+    done < <(find "$SRC_CLEAN" "${FIND_OPTS[@]}" -type f -iname "*.mp4" -print0 | sort -z)
+
+    for f in "${FILES[@]}"; do
+        if [ ! -f "$f" ]; then
+            echo "Skipping missing source: $f"
+            continue
+        fi
         if [ -n "$DEST" ]; then
             rel_path="${f#$SRC_CLEAN/}"
             out_file="${DEST%/}/${rel_path%.*}.mov"
@@ -259,7 +270,7 @@ if [ -d "$SRC" ]; then
             out_file="${f%.*}.mov"
         fi
         convert_file "$f" "$out_file"
-    done < <(find "$SRC_CLEAN" "${FIND_OPTS[@]}" -type f -iname "*.mp4")
+    done
     echo "=== Processing completed ==="
 
 # Process single file
