@@ -100,3 +100,7 @@ successful conversion, so an interrupted conversion does not leave a partial
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+## Changelog
+
+See the [changelog](CHANGELOG.md) for the release history.
