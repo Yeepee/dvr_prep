@@ -32,7 +32,7 @@ Optionally, create a symbolic link in `~/.local/bin` for easier execution:
 mkdir -p ~/.local/bin && ln -s "$(pwd)/drv_prep.sh" ~/.local/bin/dvr_prep
 ```
 
-Alternatively, install the latest version directly into `~/.local/bin`:
+Alternatively, install the latest version directly into `~/.local/bin`
 
 ```bash
 mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/Yeepee/dvr_prep/main/drv_prep.sh -o ~/.local/bin/dvr_prep && chmod +x ~/.local/bin/dvr_prep
@@ -82,6 +82,9 @@ always kept.
 
 Press `Ctrl+C` to stop the entire process, including the conversion currently
 handled by FFmpeg. The source file is kept when processing is interrupted.
+The output is written to a temporary file and moved into place only after a
+successful conversion, so an interrupted conversion does not leave a partial
+`.mov` file.
 
 ## License
 

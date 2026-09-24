@@ -111,20 +111,23 @@ fi
 convert_file() {
     local input="$1"
     local output="$2"
+    local temporary_output="${output}.part.mov"
 
     # Create target directory if needed
     mkdir -p "$(dirname "$output")"
+    rm -f "$temporary_output"
 
     echo "Processing: $input"
-    CURRENT_OUTPUT="$output"
+    CURRENT_OUTPUT="$temporary_output"
     ffmpeg -hide_banner -loglevel error -stats -i "$input" \
-        -c:v copy -c:a pcm_s24le "$output" &
+        -c:v copy -c:a pcm_s24le "$temporary_output" &
     FFMPEG_PID=$!
     wait "$FFMPEG_PID"
     ffmpeg_status=$?
     FFMPEG_PID=""
 
     if [ "$ffmpeg_status" -eq 0 ]; then
+        mv -f "$temporary_output" "$output"
         CURRENT_OUTPUT=""
         if [ "$DELETE_ORIGINAL" = true ]; then
             rm "$input"
@@ -133,6 +136,7 @@ convert_file() {
             echo " -> Converted: $output (source retained)"
         fi
     else
+        CURRENT_OUTPUT=""
         echo " -> ERROR converting $input (source retained)"
     fi
 }
