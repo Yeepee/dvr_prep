@@ -9,6 +9,26 @@
 
 RECURSIVE=false
 DELETE_ORIGINAL=false
+FFMPEG_PID=""
+
+stop_processing() {
+    echo ""
+    echo "Interrupted. Stopping current conversion..."
+    if [ -n "$FFMPEG_PID" ]; then
+        kill -INT "$FFMPEG_PID" 2>/dev/null
+        for _ in {1..20}; do
+            if ! kill -0 "$FFMPEG_PID" 2>/dev/null; then
+                break
+            fi
+            sleep 0.1
+        done
+        kill -TERM "$FFMPEG_PID" 2>/dev/null
+        kill -KILL "$FFMPEG_PID" 2>/dev/null
+    fi
+    exit 130
+}
+
+trap stop_processing INT TERM
 
 show_help() {
     cat << EOF
@@ -91,7 +111,14 @@ convert_file() {
     mkdir -p "$(dirname "$output")"
 
     echo "Processing: $input"
-    if ffmpeg -hide_banner -loglevel error -stats -i "$input" -c:v copy -c:a pcm_s24le "$output"; then
+    ffmpeg -hide_banner -loglevel error -stats -i "$input" \
+        -c:v copy -c:a pcm_s24le "$output" &
+    FFMPEG_PID=$!
+    wait "$FFMPEG_PID"
+    ffmpeg_status=$?
+    FFMPEG_PID=""
+
+    if [ "$ffmpeg_status" -eq 0 ]; then
         if [ "$DELETE_ORIGINAL" = true ]; then
             rm "$input"
             echo " -> Converted: $output (source deleted)"
@@ -113,7 +140,7 @@ if [ -d "$SRC" ]; then
         FIND_OPTS+=("-maxdepth" "1")
     fi
 
-    find "$SRC_CLEAN" "${FIND_OPTS[@]}" -type f -iname "*.mp4" | while read -r f; do
+    while read -r f; do
         if [ -n "$DEST" ]; then
             rel_path="${f#$SRC_CLEAN/}"
             out_file="${DEST%/}/${rel_path%.*}.mov"
@@ -121,7 +148,7 @@ if [ -d "$SRC" ]; then
             out_file="${f%.*}.mov"
         fi
         convert_file "$f" "$out_file"
-    done
+    done < <(find "$SRC_CLEAN" "${FIND_OPTS[@]}" -type f -iname "*.mp4")
     echo "=== Processing completed ==="
 
 # Process single file

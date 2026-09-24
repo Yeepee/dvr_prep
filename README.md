@@ -80,6 +80,9 @@ The original `.mp4` file is kept by default. Use `-d` or `--delete-original` to
 delete it after a successful conversion. If an error occurs, the source file is
 always kept.
 
+Press `Ctrl+C` to stop the entire process, including the conversion currently
+handled by FFmpeg. The source file is kept when processing is interrupted.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
