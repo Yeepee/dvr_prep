@@ -10,6 +10,7 @@
 RECURSIVE=false
 DELETE_ORIGINAL=false
 FFMPEG_PID=""
+CURRENT_OUTPUT=""
 
 stop_processing() {
     echo ""
@@ -24,6 +25,10 @@ stop_processing() {
         done
         kill -TERM "$FFMPEG_PID" 2>/dev/null
         kill -KILL "$FFMPEG_PID" 2>/dev/null
+    fi
+    if [ -n "$CURRENT_OUTPUT" ] && [ -e "$CURRENT_OUTPUT" ]; then
+        rm -f "$CURRENT_OUTPUT"
+        echo " -> Removed incomplete output: $CURRENT_OUTPUT"
     fi
     exit 130
 }
@@ -111,6 +116,7 @@ convert_file() {
     mkdir -p "$(dirname "$output")"
 
     echo "Processing: $input"
+    CURRENT_OUTPUT="$output"
     ffmpeg -hide_banner -loglevel error -stats -i "$input" \
         -c:v copy -c:a pcm_s24le "$output" &
     FFMPEG_PID=$!
@@ -119,6 +125,7 @@ convert_file() {
     FFMPEG_PID=""
 
     if [ "$ffmpeg_status" -eq 0 ]; then
+        CURRENT_OUTPUT=""
         if [ "$DELETE_ORIGINAL" = true ]; then
             rm "$input"
             echo " -> Converted: $output (source deleted)"
