@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-11-15
+
+### Added
+
+- Support multiple video file inputs, including shell-expanded file patterns.
+
+### Changed
+
+- Detect video and AAC audio streams with FFprobe regardless of file extension.
+- Convert only files with AAC audio; leave other files unchanged.
+
+### Fixed
+
+- Reject output paths that would create directories inside source files.
+
 ## [1.1.0] - 2026-09-24
 
 ### Added
