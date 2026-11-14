@@ -1,8 +1,8 @@
 # drv_prep
 
-Bash script that prepares `.mp4` video files for **DaVinci Resolve on Linux**.
-It replaces AAC audio with 24-bit PCM audio in a `.mov` container, without
-re-encoding the video. The video is therefore copied without quality loss.
+Bash script that prepares video files for **DaVinci Resolve on Linux**. It
+detects files with AAC audio and replaces it with 24-bit PCM audio in a `.mov`
+container, without re-encoding the video. Files without AAC audio are skipped.
 
 ## Requirements
 
@@ -44,14 +44,16 @@ any directory.
 ## Usage
 
 ```text
-./drv_prep.sh [-r] [-d] [-v] [-h] <source> [destination]
+./drv_prep.sh [-r] [-d] [-v] [-h] <source> [source ...] [destination]
 ```
 
-- `<source>`: an `.mp4` file or a directory containing videos.
+- `<source> [source ...]`: one or more video files or directories containing
+  videos. Shell-expanded file patterns are supported. Files are identified by
+  FFprobe, regardless of their filename extension.
 - `[destination]`: optional destination directory. If omitted, conversion takes
-  place next to the source file.
+  place next to each source file. When provided, it is the final argument.
 - `-r`, `--recursive`: also process subdirectories.
-- `-d`, `--delete-original`: delete the original `.mp4` file after successful
+- `-d`, `--delete-original`: delete the original file after successful
   conversion. By default, the original file is kept.
 - `-v`, `--verbose`: display the complete FFmpeg output. By default, only
   essential messages, a progress bar, and an estimated time remaining are
@@ -62,7 +64,7 @@ any directory.
 
 ### Examples
 
-Convert the `.mp4` files in a directory:
+Convert AAC audio in video files in a directory:
 
 ```bash
 ./drv_prep.sh /path/to/footage
@@ -72,6 +74,12 @@ Convert recursively:
 
 ```bash
 ./drv_prep.sh --recursive /run/media/sdcard/DCIM
+```
+
+Convert a set of files selected by a shell pattern into the current directory:
+
+```bash
+./drv_prep.sh /path/to/footage/*.MP4 .
 ```
 
 Convert to another directory:
@@ -86,10 +94,12 @@ Display the complete FFmpeg output:
 ./drv_prep.sh --verbose /path/to/footage
 ```
 
-The video is copied with `-c:v copy` and the audio is converted to `pcm_s24le`.
-The original `.mp4` file is kept by default. Use `-d` or `--delete-original` to
-delete it after a successful conversion. If an error occurs, the source file is
-always kept.
+The video is copied with `-c:v copy` and AAC audio is converted to `pcm_s24le`.
+Files without AAC audio are left unchanged. The original file is kept by
+default. Use `-d` or `--delete-original` to delete it after a successful
+conversion. If an error occurs, the source file is always kept. When converting
+a `.mov` in place, the output is named `<filename>_pcm.mov` to preserve the
+original by default.
 
 Press `Ctrl+C` to stop the entire process, including the conversion currently
 handled by FFmpeg. The source file is kept when processing is interrupted.
